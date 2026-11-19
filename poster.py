@@ -33,8 +33,15 @@ def get_shorts():
 
 def convert_cookies_to_netscape(json_cookies):
     lines = ["# Netscape HTTP Cookie File\n"]
-    cookies = json.loads(json_cookies)
+    data = json.loads(json_cookies)
+    # Handle both list and dict with nested cookies
+    if isinstance(data, dict):
+        cookies = data.get("cookies", data.get("cookie", []))
+    else:
+        cookies = data
     for cookie in cookies:
+        if isinstance(cookie, str):
+            continue
         domain = cookie.get("domain", "")
         flag = "TRUE" if domain.startswith(".") else "FALSE"
         path = cookie.get("path", "/")
@@ -44,7 +51,7 @@ def convert_cookies_to_netscape(json_cookies):
         value = cookie.get("value", "")
         lines.append(f"{domain}\t{flag}\t{path}\t{secure}\t{expiry}\t{name}\t{value}\n")
     return "".join(lines)
-
+    
 def download_video(video_id):
     url = f"https://www.youtube.com/watch?v={video_id}"
     
