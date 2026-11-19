@@ -51,7 +51,9 @@ def post_to_instagram(video_path, caption):
     cl = Client()
     session_file = Path("session.json")
     totp_secret = os.environ.get("INSTAGRAM_TOTP_SECRET", "")
-    totp = pyotp.TOTP(totp_secret)
+    import base64
+    padded = totp_secret + '=' * (-len(totp_secret) % 8)
+    totp = pyotp.TOTP(padded)
     
     if session_file.exists():
         cl.load_settings(session_file)
