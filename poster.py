@@ -31,42 +31,14 @@ def get_shorts():
         entries = info.get("entries", [])
         return list(reversed(entries))  # oldest first
 
-def convert_cookies_to_netscape(json_cookies):
-    lines = ["# Netscape HTTP Cookie File\n"]
-    data = json.loads(json_cookies)
-    # Handle both list and dict with nested cookies
-    if isinstance(data, dict):
-        cookies = data.get("cookies", data.get("cookie", []))
-    else:
-        cookies = data
-    for cookie in cookies:
-        if isinstance(cookie, str):
-            continue
-        domain = cookie.get("domain", "")
-        flag = "TRUE" if domain.startswith(".") else "FALSE"
-        path = cookie.get("path", "/")
-        secure = "TRUE" if cookie.get("secure", False) else "FALSE"
-        expiry = str(int(cookie.get("expirationDate", 0)))
-        name = cookie.get("name", "")
-        value = cookie.get("value", "")
-        lines.append(f"{domain}\t{flag}\t{path}\t{secure}\t{expiry}\t{name}\t{value}\n")
-    return "".join(lines)
-    
 def download_video(video_id):
     url = f"https://www.youtube.com/watch?v={video_id}"
-    
-    cookies_content = os.environ.get("YOUTUBE_COOKIES", "")
-    print(f"DEBUG: Cookies length: {len(cookies_content)}")
-    netscape = convert_cookies_to_netscape(cookies_content)
-    print(f"DEBUG: Netscape cookies lines: {len(netscape.splitlines())}")
-    with open("cookies.txt", "w") as f:
-        f.write(netscape)
     
     ydl_opts = {
         "format": "mp4",
         "outtmpl": f"{video_id}.mp4",
         "quiet": True,
-        "cookiefile": "cookies.txt",
+        "extractor_args": {"youtube": {"player_client": ["android"]}},
     }
     print(f"DEBUG: Downloading video {video_id}")
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
