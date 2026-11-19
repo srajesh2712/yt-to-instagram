@@ -45,16 +45,20 @@ def download_video(video_id):
         "quiet": True,
         "cookiefile": "cookies.txt",
     }
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+    return f"{video_id}.mp4"
+
 def post_to_instagram(video_path, caption):
     import pyotp
     
     cl = Client()
     session_file = Path("session.json")
-    totp_secret = os.environ.get("INSTAGRAM_TOTP_SECRET", "")
-    import base64
-    padded = totp_secret + '=' * (-len(totp_secret) % 8)
-    print(f"TOTP secret length: {len(totp_secret)}, value: '{totp_secret}'")
-    totp = pyotp.TOTP(padded)
+    totp_secret = os.environ.get("INSTAGRAM_TOTP_SECRET", "").strip().replace(" ", "").replace("-", "").rstrip("=").upper()
+    totp = None
+    if totp_secret:
+        padded = totp_secret + "=" * (-len(totp_secret) % 8)
+        totp = pyotp.TOTP(padded)
     
     if session_file.exists():
         cl.load_settings(session_file)
@@ -63,6 +67,8 @@ def post_to_instagram(video_path, caption):
         cl.login(IG_USERNAME, IG_PASSWORD)
     except Exception as e:
         if "TwoFactorRequired" in str(type(e).__name__):
+            if totp is None:
+                raise ValueError("INSTAGRAM_TOTP_SECRET is required for two-factor authentication")
             cl.two_factor_login(totp.now())
         else:
             raise
