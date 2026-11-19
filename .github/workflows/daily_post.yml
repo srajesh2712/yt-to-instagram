@@ -17,7 +17,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install yt-dlp instagrapi
+        run: pip install yt-dlp instagrapi pyotp
 
       - name: Run poster
         env:
