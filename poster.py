@@ -46,11 +46,27 @@ def download_video(video_id):
         "cookiefile": "cookies.txt",
     }
 def post_to_instagram(video_path, caption):
+    import pyotp
+    
     cl = Client()
-    cl.login(IG_USERNAME, IG_PASSWORD)
+    session_file = Path("session.json")
+    totp_secret = os.environ.get("INSTAGRAM_TOTP_SECRET", "")
+    totp = pyotp.TOTP(totp_secret)
+    
+    if session_file.exists():
+        cl.load_settings(session_file)
+    
+    try:
+        cl.login(IG_USERNAME, IG_PASSWORD)
+    except Exception as e:
+        if "TwoFactorRequired" in str(type(e).__name__):
+            cl.two_factor_login(totp.now())
+        else:
+            raise
+    
+    cl.dump_settings(session_file)
     cl.clip_upload(Path(video_path), caption)
     cl.logout()
-
 def main():
     posted = load_posted()
     shorts = get_shorts()
