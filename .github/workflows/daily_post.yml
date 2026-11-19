@@ -1,0 +1,33 @@
+name: Daily Instagram Post
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # 9am UTC daily
+  workflow_dispatch:  # allows manual trigger
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install yt-dlp instagrapi
+
+      - name: Run poster
+        env:
+          INSTAGRAM_USERNAME: ${{ secrets.INSTAGRAM_USERNAME }}
+          INSTAGRAM_PASSWORD: ${{ secrets.INSTAGRAM_PASSWORD }}
+          YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
+        run: python poster.py
+
+      - name: Save posted log
+        uses: actions/upload-artifact@v3
+        with:
+          name: posted-log
+          path: posted.json
