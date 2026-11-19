@@ -53,6 +53,7 @@ def post_to_instagram(video_path, caption):
     totp_secret = os.environ.get("INSTAGRAM_TOTP_SECRET", "")
     import base64
     padded = totp_secret + '=' * (-len(totp_secret) % 8)
+    print(f"TOTP secret length: {len(totp_secret)}, value: '{totp_secret}'")
     totp = pyotp.TOTP(padded)
     
     if session_file.exists():
