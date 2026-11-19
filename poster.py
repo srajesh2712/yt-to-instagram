@@ -33,15 +33,18 @@ def get_shorts():
 
 def download_video(video_id):
     url = f"https://www.youtube.com/watch?v={video_id}"
+    
+    # Write cookies to temp file
+    cookies_content = os.environ.get("YOUTUBE_COOKIES", "")
+    with open("cookies.txt", "w") as f:
+        f.write(cookies_content)
+    
     ydl_opts = {
         "format": "mp4",
         "outtmpl": f"{video_id}.mp4",
         "quiet": True,
+        "cookiefile": "cookies.txt",
     }
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
-    return f"{video_id}.mp4"
-
 def post_to_instagram(video_path, caption):
     cl = Client()
     cl.login(IG_USERNAME, IG_PASSWORD)
